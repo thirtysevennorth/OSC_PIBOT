@@ -5,7 +5,7 @@ The OSC PIBOT framework goals are to provide a OSC based interface that allows f
 
 For each robot, a compute board such as a Raspberry Pi 4B, installed with Ubuntu 22.04, is running a Python script that sets up an OSC server, acting as a bridge between all other OSC clients and the iCreate3 itself (which can't receive OSC natively). Each Pi only listens for messages relating to its assigned robot, filters them, expands them to lower-level commands, and sends them directly to the robot via Bluetooth. For more reliable Bluetooth connection with longer range coverage, the Pis are mounted on the robots and receive OSC messages via a local WiFi network. An optional 'hub' computer may be employed to coordinate multiple robots.
 
-Sample MAX-MSP and Isadora files for use with the library are located in the "DOCS" section. It can be used with any program capable of OSC input / output and additional sample files are welcomed. 
+Sample MAX-MSP and Isadora patches for use with the PIBOT framework are on the [Examples](docs/Examples.md) page. OSC PIBOT can be used with any OSC sender / receiver and additional sample files are welcomed. 
 
 Two modes:
 1) peer to peer - nodes run on the Pi on each robot and each directly receive/ transmit OSC messages 
@@ -26,18 +26,18 @@ The OSC PIBOT framework is intended for use on a raspberry Pi 4 or later running
 ## PI SETUP FOR PIBOT
 The Pi should be setup running Ubuntu 22.04 with ports to send / receive UDP messages open. Bluetooth, I2C, I2S functionality must be enabled. 
  * Some pi's may require adjustments to the bluetooth settings to connect to the iCreate3 Bluetooth. See links for the specific build of Ubuntu 22.04 if you have issues. 
- * See the [**detailed set-up guide**](docs/Pi_CONFIGURATION.md) for detailed guidance on configuring a Pi for use with the ICreate 3, the PIBOT script and ROS2. It documents our configuration of an Ubuntu 22.04.03 image. Your hardware and specific Ubuntu or Raspbian build may require adjustments.
+ * See the [**detailed set-up guide**](docs/Pi_CONFIGURATION.md) for additional guidance on configuring a Pi for use with the ICreate 3, the PIBOT script and ROS2. It documents our configuration of an Ubuntu 22.04.03 image. Your hardware and specific Ubuntu or Raspbian build may require adjustments.
  * Bluettoth pairing: On occasion some Pi devices experienced bluetooth pairing and connection issues to the iCreate3. There are a wide range of guides to troubleshoot bluetooth connection and pairign issues. We have found that delaying the start of the bluetooth service may help, as does cycling bluetooth on/off from the command line.
 
 ## Network configuration, Pihub and multiple robots
-The hub/sequencer allows for control of multiple robots and multiple pi's from a unified interface. 
+The hub/sequencer allows for control of multiple robots and multiple pi's from a unified OSC interface. 
  - You must configure the iCreate ROS namespace and device name to have unique names for each bot in the system.
  - See the [Network Diagram](docs/OSC_PIBOT_SIMPLE.png) for single bot or the [examples page](docs/Examples.md) for more detailed instructions.
  - you may need to adjust the UFW or other firewall settings of your local router and the individual pi's to allow for peer to peer UDP transmission. 
 
 
 # EXAMPLES AND RESOURCES
-Please see the [**EXAMPLES page**](docs/Examples.md) in the docs folder for a list of example files and supplemental downloads and detailed configurations.
+Please see the [**EXAMPLES page**](docs/Examples.md) in the docs folder for example files, downloads and additional configuration resources.
 
 # USAGE
 
