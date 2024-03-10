@@ -5,7 +5,7 @@ The OSC PIBOT framework goals are to provide a OSC based interface that allows f
 
 For each robot, a compute board such as a Raspberry Pi 4B, installed with Ubuntu 22.04, is running a Python script that sets up an OSC server, acting as a bridge between all other OSC clients and the iCreate3 itself (which can't receive OSC natively). Each Pi only listens for messages relating to its assigned robot, filters them, expands them to lower-level commands, and sends them directly to the robot via Bluetooth. For more reliable Bluetooth connection with longer range coverage, the Pis are mounted on the robots and receive OSC messages via a local WiFi network. An optional 'hub' computer may be employed to coordinate multiple robots.
 
-Sample MAX-MSP and Isadora patches for use with the PIBOT framework are on the [Examples](docs/Examples.md) page. OSC PIBOT can be used with any OSC sender / receiver and additional sample files are welcomed. 
+Sample MAX-MSP and Isadora patches for use with the PIBOT framework are on the [**EXAMPLES**](docs/Examples.md) page. OSC PIBOT can be used with any OSC sender / receiver and additional sample files are welcomed. 
 
 Two modes:
 1) peer to peer - nodes run on the Pi on each robot and each directly receive/ transmit OSC messages 
