@@ -48,7 +48,10 @@ You can learn about [Isadora](https://troikatronix.com), download a trial or lic
 
 This patch assumes a working Raspbery Pi running the PIBOT framework and Icreate robot in communication with it, and that the computer running Isadora is on the same local network with no barriers to sending OSC. Optionally it also assues a secondary circuit board for PWM/ Lighting / motor control. 
 
-[**download example**](OSC_PIBOT_Isadora_Example.izz)
+[**DOWNLOAD EXAMPLE FILE**](OSC_PIBOT_Isadora_Example.izz)
+
+![Isadora Example Screenshot](IsadoraExample_PIBOT.png)
+
 
 ### Isadora Setup for PIBOT
 requirements
@@ -76,7 +79,7 @@ requirements
 ## DOWNLOADS
    - [basic pibot architecture](OSC_PIBOT_SIMPLE.png)
    - [PIHUB with multiple bots](OSC_PIHUB.png)
-   - [network architecture](OSC_PIBOT_Network_Overview.pdf)
+   - [network architecture diagram](OSC_PIBOT_Network_Overview.pdf)
    - [schematic of the circuit board](LED_PWM_driver_schematic.png)
    - [PIHUB Cue List Example](CueListExample.md)
    - [Isadora Example file](OSC_PIBOT_Isadora_Example.izz)
