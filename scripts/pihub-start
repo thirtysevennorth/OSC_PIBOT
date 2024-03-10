@@ -1,0 +1,19 @@
+#!/usr/bin/env sh
+
+# SCRIPT_DIR="$(dirname "$(realpath "$0")")"
+# SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname -- "$0")" && pwd)"
+
+source $SCRIPT_DIR/env.sh
+
+local_env="$SCRIPT_DIR/env_local"
+if [ -f "$local_env" ]; then
+    # Source the file
+    source "$local_env"
+    echo "Sourced local env at $local_env."
+else
+    echo "No local env file found at $local_env, ignoring..."
+fi
+
+# Use a subshell to change directory and run lein run
+(cd "$PIHUB_HOME" && lein run)

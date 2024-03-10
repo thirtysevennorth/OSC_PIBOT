@@ -1,0 +1,3 @@
+#!/usr/bin/bash
+(cd $PIBOT_HOME && colcon build)
+# source $PIBOT_HOME/install/setup.bash

@@ -1,0 +1,751 @@
+#!/usr/bin/env python3
+# Basic python stuff
+import asyncio
+import math
+import time
+import os
+# Robot stuff
+from irobot_edu_sdk.backend.bluetooth import Bluetooth
+from irobot_edu_sdk.robots import event, hand_over, Color, Robot, Root, Create3
+from irobot_edu_sdk.music import Note
+# OSC stuff
+from pythonosc.dispatcher import Dispatcher
+from pythonosc.osc_server import AsyncIOOSCUDPServer #, BlockingOSCUDPServer
+from pythonosc.udp_client import SimpleUDPClient
+# i2c stuff imports
+from board import SCL, SDA
+import busio
+from adafruit_pca9685 import PCA9685
+
+# i2c stuff setup
+try:
+    # Create the I2C bus interface and pca instance
+    i2c_bus = busio.I2C(SCL, SDA)
+    pca = PCA9685(i2c_bus)
+    # Set the PWM frequency to 60hz.
+    pca.frequency = 60
+    print("Set PCA frequency successfully.")
+# handle the scenario where no device is found
+except ValueError:
+    print("i2c device not found. Please check the connection.")
+    # Handle the error as needed, e.g., retry, log error, exit program, etc.
+
+# Flags
+charging = False
+busy_charging = False
+
+my_id = int(os.environ["MY_ID"])
+
+print(f"My ID is {my_id}, with type {type(my_id)}")
+
+
+
+# Pihub
+pihub_ip = str(os.environ["PIHUB_OSC_IP"])
+pihub_port = int(os.environ["PIHUB_OSC_PORT"])
+pihub_client = SimpleUDPClient(pihub_ip, pihub_port)  # Create client
+pihub_client_ready = True
+
+# Send messages like this:
+# pihub_client.send_message("/some/address", 123)   # Send float message
+# pihub_client.send_message("/some/address", [1, 2., "hello"])  # Send message with int, float and string
+
+
+# Pibot
+pibot_server_ip = os.environ["MY_IP"]
+print(f"My ip is: {pibot_server_ip}")
+pibot_server_port = os.environ["PIBOT_OSC_PORT"]
+
+# Parameters
+param_speed_factor = 1.0
+param_rotation_speed_factor = 1.0
+param_rotation_speed_offset = 0.0
+param_movement_speed = 7
+param_rotation_speed = 14
+
+# Connect to the Robot
+my_robot_name = os.environ["MY_ROBOT_NAME"]
+print(f"My robot is: {my_robot_name}")
+robot = Create3(Bluetooth(my_robot_name))
+
+# Executors
+async def play_note(freq):
+    # print(f"Playing note with freq={freq}")
+    await robot.play_note(freq, 7)
+
+def calculate_navigation(x1, y1, angle, x2, y2):
+    # Convert to radians
+    angle = math.radians(angle)
+    # Calculate the angle to the target
+    target_angle = math.atan2(y2 - y1, x2 - x1)
+    target_angle = math.degrees(target_angle)
+    # # Normalize the angles to [-π, π]
+    # angle = math.atan2(math.sin(angle), math.cos(angle))
+    # # Calculate the required rotation
+    # delta_angle = target_angle - angle
+    # # Normalize the delta angle to [-180, 180] or [-π, π]
+    # delta_angle = math.atan2(math.sin(delta_angle), math.cos(delta_angle))
+    # # Convert back to degrees
+    # delta_angle = math.degrees(delta_angle) * -1
+    # # Calculate the straight line distance
+    distance = distance(x1, y1, x2, y2)
+    return target_angle, distance
+
+rotation_speed = 10
+
+async def navigate_to(x, y, speed=6):
+    print(f"Navigating to: x={x}, y={y}...")
+    while True:
+        start_pos = await get_pos()
+        distance = distance(start_pos.x, start_pos.y, x, y)
+        if distance <= 10:
+            print(f"==Finished navigating to: x={x}, y={y}.")
+            return
+        else:
+            # print(f"Starting pos is: {start_pos}")
+            # print(f"Angle: {start_pos.heading}")
+            # print("navigate_to: 1")
+            # print("Calling calculate navigation")
+            target_angle, distance_to_travel = calculate_navigation(start_pos.x, start_pos.y, start_pos.heading, x, y)
+            # print("navigate_to: 3")
+            rotation_result = await face_angle(target_angle, rotation_speed)
+            # print("navigate_to: 4")
+            # print(f"|== rotation result: {rotation_result}")
+            movement_result = await move(distance_to_travel, speed)
+            # print("navigate_to: 5")
+            # print(f"Navigating to: x={x}, y={y} DONE.")
+            # print(f"|== movement result: {movement_result}")
+
+async def stop():
+    # TODO empty command queue?
+    print("Stopping...")
+    await set_wheel_speeds(0, 0)
+
+async def get_pos():
+    # print(f"Getting robot position...")
+    pos = await robot.get_position()
+    print(f"Position is: {pos}")
+    # print("Sending position to pihub...")
+    # # TODO add pibot ID num
+    # pihub_client.send_message("/pibot/address", [pos.x, pos.y, pos.heading])
+    return pos
+
+async def send_pos():
+    if pihub_client_ready:
+        pihub_client.send_message("/pibot/update/pos", my_id, pos.x, pos.y, pos.heading)
+
+async def get_battery():
+    # print(f"Getting robot battery...")
+    bat = await robot.get_battery_level()
+    print(f"Battery level: {bat}")
+    return bat
+
+
+await move_ramp_speed([(10, 5), (100, 6), (1000, 10)])
+
+async def move_ramp_speed(distance, speeds_and_durs):
+    start_pos = await get_pos()
+
+async def move(distance_cm, speed_cms):
+    start_pos = await get_pos()
+    print(f"Moving forward by {distance_cm}cm at a speed of {speed_cms}cm...")
+    dur = distance_cm / speed_cms
+    print(speed_cms)
+    print(param_speed_factor)
+    adjusted_speed = speed_cms * param_speed_factor
+    print(adjusted_speed)
+    result = await set_wheel_speeds_dur(adjusted_speed, adjusted_speed, dur)
+    dest_pos = await get_pos()
+    # print("==== Move 6")
+    total_distance_travelled = distance(start_pos.x, start_pos.y, dest_pos.x, dest_pos.y)
+    print(total_distance_travelled)
+    # ratio = distance_cm / total_distance_travelled
+    # print("==== Move 8")
+    # print(f"Moving forward by {distance_cm} cm DONE.")
+    # print(f"Ratio of desired / actual: {ratio}.")
+    # print(f"|== result: {result}")
+
+def calculate_wheel_speed_for_rotation(degrees, degrees_per_s):
+    rotation_dur = degrees / degrees_per_s
+    arc_length = calculate_arc_length(radius, degrees)
+    cm_per_s = arc_length / rotation_dur
+    # print(f"wheel speed calculations:")
+    # print(f"degrees: {degrees}, radius: {radius}, speed: {degrees_per_s}")
+    # print("------Cm per s below")
+    # print(cm_per_s)
+    # print(f"arc_length: {arc_length}, cm_per_s: {cm_per_s}")
+    return cm_per_s
+
+def wheel_speed_for_rotation(R, W):
+    """
+    Calculate the linear speed of a point rotating around a circle.
+
+    :param R: Radius of the circle in centimeters.
+    :param W: Angular speed in degrees per second.
+    :return: Linear speed in cm/s.
+    """
+    return R * W * math.pi / 180
+
+wheel_width = 1.30  # in cm
+distance_between_outer_edges = 24.75  # in cm
+rotation_radius = (distance_between_outer_edges - wheel_width) / 2
+
+async def rotate_builtin(direction, degrees):
+    await robot.turn(direction, degrees)
+
+async def rotate(degrees, degrees_per_s, rad=11.5):
+    print(f"Rotating {degrees} degrees at a speed of {degrees_per_s} d/s, with radius {rad}...")
+    # print("Starting pos:")
+    # start_pos = await get_pos()
+
+    if degrees == 0:
+        return
+    elif degrees > 0:
+        direction = 'right'
+    else:
+        direction = 'left'
+
+    degrees = abs(degrees)
+    wheel_speed = 0.85 * wheel_speed_for_rotation(rad, degrees_per_s) #calculate_wheel_speed_for_rotation(degrees, degrees_per_s)
+    # wheel_speed = (wheel_speed * param_rotation_speed_factor) + param_rotation_speed_offset
+    rotation_dur = degrees / degrees_per_s
+
+    if direction == 'right':
+        speed_l = wheel_speed
+        speed_r = -wheel_speed
+    elif direction == 'left':
+        speed_l = -wheel_speed
+        speed_r = wheel_speed
+
+    result = await set_wheel_speeds_dur(speed_l, speed_r, rotation_dur)
+    print(f"==Done rotating {degrees} degrees at a speed of {degrees_per_s} d/s, with radius {rad}...")
+    # end_pos = await get_pos()
+    # print(f"Start pos: {start_pos}, End pos: {end_pos}")
+    # print(f"++ Rotation headings: Start: {start_pos.heading}, End: {end_pos.heading}")
+    # print(f"++ Rotation headings diff = {end_pos.heading - start_pos.heading}")
+
+async def undock():
+    print("Undocking...")
+    result = await robot.undock()
+    # await robot.move(20)
+    print("Reseting pos...")
+    await robot.reset_navigation()
+    print("Undocking DONE.")
+    print(f"|== result: {result}")
+
+async def dock(wait_time=60):
+    default_wait_time = 60
+    if wait_time == -1:
+        wait_time = default_wait_time
+    print("Docking sequence started...")
+    if wait_time != 0:
+        result = await navigate_to(0, 50)
+        result = await navigate_to(0, 40)
+        print(result)
+        print(f"Waiting for {wait_time}s to make sure navigation to 0,0 was successful...")
+        await robot.wait(wait_time)
+        print("DONE waiting, now actually docking...")
+    else:
+        print("Looking for dock immediately...")
+    result = await robot.dock()
+    await reset_pos()
+    print("DONE Docking.")
+    print(f"|== result: {result}")
+
+
+
+async def reset_pos():
+    await robot.reset_navigation()
+
+async def speak(s):
+    await robot.say(s)
+
+async def set_wheel_speeds(left, right):
+    # print("Setting wheel speeds...")
+    await robot.set_wheel_speeds(left, right)
+
+async def set_wheel_speeds_dur(left, right, dur):
+    time_to_wait = dur * param_speed_factor
+    # print(f"Setting wheel speeds to ({left}, {right}) with wait duration of {dur}s...")
+    await robot.set_wheel_speeds(left, right)
+    # print(f"Waiting for {dur} seconds...")
+    await robot.wait(time_to_wait)
+    await robot.set_wheel_speeds(0, 0)
+    # print(f"Done setting wheel speeds, they've been reset to 0.")
+
+
+def normalize_angle(angle):
+    """ Normalize the angle to be within 0 to 359 degrees. """
+    return angle % 360
+
+
+def calculate_delta_angle(current_angle, target_angle):
+    """
+    Calculate the delta angle required to turn from current_angle to target_angle.
+
+    :param current_angle: Current angle in degrees
+    :param target_angle: Target angle in degrees
+    :return: Delta angle in degrees, positive for clockwise and negative for counter-clockwise
+    """
+    delta = target_angle - current_angle
+    if delta > 180:
+        delta -= 360
+    elif delta < -180:
+        delta += 360
+    return -delta  # Inverting the sign to match the specified behavior
+
+def min_angle_difference(angle1, angle2):
+    # Normalize angles to [0, 360) range
+    angle1 = angle1 % 360
+    angle2 = angle2 % 360
+
+    # Calculate absolute difference
+    diff = abs(angle1 - angle2)
+
+    # If the difference is greater than 180, find the minimum difference
+    if diff > 180:
+        diff = 360 - diff
+
+    return diff
+
+async def face_angle(target_angle, degree_s=5):
+    while True:
+        current_pos = await get_pos()
+        current_angle = current_pos.heading
+        difference = min_angle_difference(current_angle, target_angle)
+        if difference < 2:
+            print("Face angle: Facing the right way:")
+            await get_pos()
+            print("Face angle: Returning...")
+            return
+        else:
+            amt_to_turn = calculate_delta_angle(current_angle, target_angle)
+            print(f"Turning {amt_to_turn} degrees...")
+            await rotate(amt_to_turn, degree_s)
+
+async def callibrate_speed_factor():
+    print("+++ Callibrating speed factor...")
+    # await dock()
+    await undock()
+    await reset_pos()
+    print(f"Current speed factor is {param_speed_factor}.")
+    ratio = 100 # placeholder, will get set later
+    target_ratio_abs_diff = 0.001
+    distance_per_step = 2*100
+    init_speed = 5
+    i = 0
+    while True:
+        starting_pos = await get_pos()
+        starting_y = starting_pos.y
+        target_y = starting_y + distance_per_step
+        dur = distance_per_step / init_speed
+        print(f"Starting iteration {i}.")
+        print(f"Should travel {distance_per_step} cm at a speed of {init_speed} cm/s, which means it should travel for {dur}s")
+        adjusted_speed = init_speed * param_speed_factor
+        await set_wheel_speeds_dur(adjusted_speed, adjusted_speed, dur)
+        new_pos = await get_pos()
+        ratio = target_y / new_pos.y
+        print(f"Arrived at x={new_pos.y}, y={new_pos.y}")
+        print(f"Ratio of target_y/new_y is {ratio}")
+        abs_diff = abs(1.0 - ratio)
+        if abs_diff <= target_ratio_abs_diff:
+            print(f"NOTE: Ratio of {ratio} is within the acceptable range of +-{target_ratio_abs_diff}; wrapping up callibration is finished.")
+            break
+
+        print(f"++ Setting param_speed_factor to new ratio ({ratio}) and looping again...")
+        i += 1
+    print(f"++ Speed factor callibration is finished, new ratio param_speed_factor is {param_speed_factor}.")
+    await dock()
+
+
+#### OSC
+# Handlers
+def default_handler(address, *args):
+    print(f"DEFAULT OSC HANDLER received:\n Addr: {address}, args: {args}")
+
+
+def move_handler(address, *args):
+    if not busy_charging:
+        bot_id = args[0]
+        if bot_id == -1 or bot_id == my_id:
+            distance = args[1] # NOTE it's in cm
+            speed = args[2] # NOTE it's in cm
+            coroutine = move(distance, speed)
+            future = asyncio.run_coroutine_threadsafe(coroutine, asyncio.get_event_loop())
+
+def play_note_handler(address, *args):
+    bot_id = args[0]
+    if bot_id == -1 or bot_id == my_id:
+        freq = args[1]
+        coroutine = play_note(freq)
+        future = asyncio.run_coroutine_threadsafe(coroutine, asyncio.get_event_loop())
+        # Optionally wait for the future to complete
+        # result = future.result()
+
+def rotate_handler(address, *args):
+    if not charging:
+        bot_id = args[0]
+        if bot_id == -1 or bot_id == my_id:
+            degrees = args[1]
+            speed = args[2]
+            coroutine = rotate(degrees, speed)
+            future = asyncio.run_coroutine_threadsafe(coroutine, asyncio.get_event_loop())
+            # Optionally wait for the future to complete
+            # result = future.result()
+
+def rotate_builtin_handler(address, *args):
+    if not charging:
+        bot_id = args[0]
+        if bot_id == -1 or bot_id == my_id:
+            degrees = args[1]
+            coroutine = rotate_builtin(degrees)
+            future = asyncio.run_coroutine_threadsafe(coroutine, asyncio.get_event_loop())
+            # Optionally wait for the future to complete
+            # result = future.result()
+
+def rotate_with_radius_handler(address, *args):
+    if not busy_charging:
+        bot_id = args[0]
+        if bot_id == -1 or bot_id == my_id:
+            degrees = args[1]
+            speed = args[2]
+            rad = args[3]
+            coroutine = rotate(degrees, speed, rad)
+            future = asyncio.run_coroutine_threadsafe(coroutine, asyncio.get_event_loop())
+            # Optionally wait for the future to complete
+            # result = future.result()
+
+def navigate_to_handler(address, *args):
+    if not busy_charging:
+        bot_id = args[0]
+        if bot_id == -1 or bot_id == my_id:
+            x = args[1]
+            y = args[2]
+            if len(args) == 4:
+                speed = args[3]
+                coroutine = navigate_to(x, y, speed)
+            else:
+                coroutine = navigate_to(x, y)
+            future = asyncio.run_coroutine_threadsafe(coroutine, asyncio.get_event_loop())
+            # Optionally wait for the future to complete
+            # result = future.result()
+
+def undock_handler(address, *args):
+    if not busy_charging:
+        bot_id = args[0]
+        if bot_id == -1 or bot_id == my_id:
+            coroutine = undock()
+            future = asyncio.run_coroutine_threadsafe(coroutine, asyncio.get_event_loop())
+            # Optionally wait for the future to complete
+            # result = future.result()
+
+def dock_handler(address, *args):
+    bot_id = args[0]
+    if bot_id == -1 or bot_id == my_id:
+        if len(args) == 1:
+            wait_time = -1
+        else:
+            wait_time = args[1]
+            coroutine = dock(wait_time)
+            future = asyncio.run_coroutine_threadsafe(coroutine, asyncio.get_event_loop())
+            # Optionally wait for the future to complete
+            # result = future.result()
+
+def get_pos_handler(address, *args):
+    bot_id = args[0]
+    if bot_id == -1 or bot_id == my_id:
+        # print("---Get pos handler")
+        coroutine = get_pos()
+        future = asyncio.run_coroutine_threadsafe(coroutine, asyncio.get_event_loop())
+        # Optionally wait for the future to complete
+        # result = future.result()
+
+def get_battery_handler(address, *args):
+    bot_id = args[0]
+    if bot_id == -1 or bot_id == my_id:
+        # print("---Get pos handler")
+        coroutine = get_battery()
+        future = asyncio.run_coroutine_threadsafe(coroutine, asyncio.get_event_loop())
+        # Optionally wait for the future to complete
+        # result = future.result()
+
+def reset_pos_handler(address, *args):
+    bot_id = args[0]
+    if bot_id == -1 or bot_id == my_id:
+        coroutine = reset_pos()
+        future = asyncio.run_coroutine_threadsafe(coroutine, asyncio.get_event_loop())
+        # Optionally wait for the future to complete
+        # result = future.result()
+
+def set_wheel_speeds_handler(address, *args):
+    if not busy_charging:
+        bot_id = args[0]
+        if bot_id == -1 or bot_id == my_id:
+            left = args[1]
+            right = args[2]
+            coroutine = set_wheel_speeds(left, right)
+            future = asyncio.run_coroutine_threadsafe(coroutine, asyncio.get_event_loop())
+            # Optionally wait for the future to complete
+            # result = future.result()
+
+def face_angle_handler(address, *args):
+    if not busy_charging:
+        bot_id = args[0]
+        if bot_id == -1 or bot_id == my_id:
+            target_angle = args[1]
+            rotation_speed = args[2]
+            coroutine = face_angle(target_angle, rotation_speed)
+            future = asyncio.run_coroutine_threadsafe(coroutine, asyncio.get_event_loop())
+            # print("Setting LED...")
+            # print(args)
+            new_val = args[1]
+            print(f"Setting rotation speed to {new_val}")
+            param_rotation_speed = new_val
+
+def callibrate_speed_handler(address, *args):
+    coroutine = callibrate_speed_factor()
+    future = asyncio.run_coroutine_threadsafe(coroutine, asyncio.get_event_loop())
+    # Optionally wait for the future to complete
+    # result = future.result()
+
+def set_wheel_speeds_dur_handler(address, *args):
+    if not busy_charging:
+        bot_id = args[0]
+        if bot_id == -1 or bot_id == my_id:
+            left = args[1]
+            right = args[2]
+            dur = args[3]
+            coroutine = set_wheel_speeds_dur(left, right, dur)
+            future = asyncio.run_coroutine_threadsafe(coroutine, asyncio.get_event_loop())
+            # Optionally wait for the future to complete
+            # result = future.result()
+
+def speak_handler(address, *args):
+    bot_id = args[0]
+    if bot_id == -1 or bot_id == my_id:
+        s = args[1]
+        print(f"Saying: {s}")
+        coroutine = speak(s)
+        future = asyncio.run_coroutine_threadsafe(coroutine, asyncio.get_event_loop())
+        # Optionally wait for the future to complete
+        # result = future.result()
+
+def stop_handler(address, *args):
+    bot_id = args[0]
+    if bot_id == -1 or bot_id == my_id:
+        coroutine = stop()
+        future = asyncio.run_coroutine_threadsafe(coroutine, asyncio.get_event_loop())
+        # Optionally wait for the future to complete
+        # result = future.result()
+
+def set_led(r, g, b, w):
+    # print(f"Setting LED to r={r}, g={g}, b={b}, w={w}")
+    pca.channels[0].duty_cycle = r
+    pca.channels[1].duty_cycle = g
+    pca.channels[2].duty_cycle = b
+    pca.channels[3].duty_cycle = w
+
+def set_led_handler(address, *args):
+    # print("Setting LED...")
+    # print(args)
+    bot_id = args[0]
+    if bot_id == -1 or bot_id == my_id:
+        r = args[1]
+        g = args[2]
+        b = args[3]
+        w = args[4]
+        set_led(r, g, b, w)
+
+def set_movement_speed_handler(address, *args):
+    bot_id = args[0]
+    if bot_id == -1 or bot_id == my_id:
+        # print("Setting LED...")
+        # print(args)
+        new_val = args[1]
+        print(f"Setting movement speed to {new_val}")
+        param_movement_speed = new_val
+
+def set_rotation_speed_handler(address, *args):
+    bot_id = args[0]
+    if bot_id == -1 or bot_id == my_id:
+        # print("Setting LED...")
+        # print(args)
+        new_val = args[1]
+        print(f"Setting rotation speed to {new_val}")
+        param_rotation_speed = new_val
+
+def set_speed_factor(address, *args):
+    bot_id = args[0]
+    if bot_id == -1 or bot_id == my_id:
+        val = args[1]
+        print(f"Changing speed factor from {param_speed_factor} to {val}.")
+        param_speed_factor = val
+
+def set_rotation_speed_factor(address, *args):
+    bot_id = args[0]
+    if bot_id == -1 or bot_id == my_id:
+        val = args[1]
+        print(f"Changing rotation speed factor from {param_rotation_speed_factor} to {val}.")
+        param_rotation_speed_factor = val
+
+def set_rotation_speed_offset(address, *args):
+    bot_id = args[0]
+    if bot_id == -1 or bot_id == my_id:
+        val = args[1]
+        print(f"Changing rotation speed factor from {param_rotation_speed_offset} to {val}.")
+        param_rotation_speed_offset = val
+
+
+def set_param_rotation_speed_factor(address, *args):
+    bot_id = args[0]
+    if bot_id == -1 or bot_id == my_id:
+        val = args[1]
+        print(f"Changing rotation factor from {param_rotation_speed_factor} to {val}.")
+        param_rotation_speed_factor = val
+
+def print_rotation_radius(address, *args):
+    print(f"Rotation radius is: {rotation_radius}")
+
+def set_rotation_radius(address, *args):
+    new_val = args[0]
+    print(f"Setting rotation radius to {new_val}")
+    rotation_radius = new_val
+
+# async def callibrate_rotation_speeds():
+#     # NOTE this is too large for now...
+#     speeds = range(0.5, 50, 0.5)
+#     for speed in speeds:
+#         print(f"Callibrating speed {speed}...")
+
+#         difference = 100
+#         while difference > 1:
+#             start_pos = await get_pos()
+#             print(f"Starting pos")
+
+#### OSC Dispatcher
+dispatcher = Dispatcher()
+dispatcher.set_default_handler(default_handler)
+## MOVEMENT
+# distance (cm), optional: speed (cm/s)
+dispatcher.map("/pibot/command/move", move_handler)
+# x, y (cm), optional: speed (cm/s)
+dispatcher.map("/pibot/command/navigate-to", navigate_to_handler)
+# degrees, optional: speed (degrees/s)
+dispatcher.map("/pibot/command/rotate", rotate_handler)
+# nothing
+dispatcher.map("/pibot/command/stop", stop_handler)
+## UTILITIES
+# r, g, b, w (16-bit)
+dispatcher.map("/pibot/command/set-LED", set_led_handler)
+# freq (Hz), optional: duration (s) TODO dur
+dispatcher.map("/pibot/command/play-note", play_note_handler)
+# nothing
+dispatcher.map("/pibot/command/undock", undock_handler)
+# nothing
+dispatcher.map("/pibot/command/dock", dock_handler)
+# nothing
+dispatcher.map("/pibot/command/reset-pos", reset_pos_handler)
+# left_speed, right_speed (both cm/s)
+dispatcher.map("/pibot/command/set-wheel-speeds", set_wheel_speeds_handler)
+# left_speed, right_speed (both cm/s), duration (s)
+dispatcher.map("/pibot/command/set-wheel-speeds-dur", set_wheel_speeds_dur_handler)
+# nothing
+dispatcher.map("/pibot/command/callibrate-speed", callibrate_speed_handler)
+# string
+dispatcher.map("/pibot/command/speak", speak_handler)
+## INFO - these expect nothing
+dispatcher.map("/pibot/info/get-pos", get_pos_handler)
+dispatcher.map("/pibot/info/get-battery", get_battery_handler)
+dispatcher.map("/pibot/info/send-pos", get_pos_handler)
+dispatcher.map("/pibot/info/send-battery", get_battery_handler)
+## PARAMETERS - these expect a single number
+dispatcher.map("/pibot/set/speed-factor", set_speed_factor)
+dispatcher.map("/pibot/set/rotation-speed-factor", set_rotation_speed_factor)
+dispatcher.map("/pibot/set/rotation-speed-offset", set_rotation_speed_offset)
+dispatcher.map("/pibot/set/movement-speed", set_movement_speed_handler)
+dispatcher.map("/pibot/set/rotation-speed", set_rotation_speed_handler)
+dispatcher.map("/pibot/set/rotation-radius", set_rotation_radius)
+dispatcher.map("/pibot/print/rotation-radius", print_rotation_radius)
+
+
+
+# dispatchers for dev purposes (quicker to type)
+
+dispatcher.map("/move", move_handler)
+# x, y (cm), optional: speed (cm/s)
+dispatcher.map("/navigate-to", navigate_to_handler)
+# degrees, optional: speed (degrees/s)
+dispatcher.map("/rotate", rotate_handler)
+dispatcher.map("/rotate-builtin", rotate_builtin_handler)
+dispatcher.map("/rotate-with-radius", rotate_with_radius_handler)
+# nothing
+dispatcher.map("/stop", stop_handler)
+## UTILITIES
+# r, g, b, w (16-bit)
+dispatcher.map("/set-LED", set_led_handler)
+# freq (Hz), optional: duration (s) TODO dur
+dispatcher.map("/play-note", play_note_handler)
+# nothing
+dispatcher.map("/undock", undock_handler)
+# nothing
+dispatcher.map("/dock", dock_handler)
+# nothing
+dispatcher.map("/reset-pos", reset_pos_handler)
+# left_speed, right_speed (both cm/s)
+dispatcher.map("/set-wheel-speeds", set_wheel_speeds_handler)
+# left_speed, right_speed (both cm/s), duration (s)
+dispatcher.map("/set-wheel-speeds-dur", set_wheel_speeds_dur_handler)
+# nothing
+dispatcher.map("/callibrate-speed", callibrate_speed_handler)
+# string
+dispatcher.map("/speak", speak_handler)
+## INFO - these expect nothing
+dispatcher.map("/get-pos", get_pos_handler)
+dispatcher.map("/get-battery", get_battery_handler)
+## PARAMETERS - these expect a single number
+dispatcher.map("/set-speed-factor", set_speed_factor)
+dispatcher.map("/set-rotation-speed-factor", set_rotation_speed_factor)
+dispatcher.map("/set-rotation-speed-offset", set_rotation_speed_offset)
+dispatcher.map("/set-movement-speed", set_movement_speed_handler)
+dispatcher.map("/set-rotation-speed", set_rotation_speed_handler)
+dispatcher.map("/set-rotation-radius", set_rotation_radius)
+dispatcher.map("/face-angle", face_angle_handler)
+dispatcher.map("/print-rotation-radius", print_rotation_radius)
+
+
+# NOTE in seconds
+check_battery_every = 1*60
+
+@event(robot.when_play)
+async def check_battery(robot):
+    while True:
+        battery = await robot.get_battery_level()
+        percentage = battery[1]
+        print(f"INFO: Battery percentage: {percentage}%...")
+        # FIXME
+        # if not busy_charging and percentage <= 20:
+        if percentage <= 20:
+            # busy_charging = True
+            # await dock()
+            print("!!!!!WARNING!!!!! Low battery: {percentage}%")
+        # elif busy_charging and percentage >=95:
+        #     busy_charging = False
+        #     await undock()
+        await asyncio.sleep(check_battery_every)
+    # print(f"Connected to {my_robot_name}.")
+    # print("Creating OSC Server...")
+    # pibot_server = AsyncIOOSCUDPServer((pibot_server_ip, pibot_server_port), dispatcher, asyncio.get_event_loop())
+    # print(f"Spinning OSC server, listening at ip={pibot_server_ip} and port={pibot_server_port} ")
+    # # Serve forever
+    # transport, protocol = await pibot_server.create_serve_endpoint()
+
+@event(robot.when_play)
+async def start_OSC_server(robot):
+    print(f"Connected to {my_robot_name}.")
+    print("Creating OSC Server...")
+    pibot_server = AsyncIOOSCUDPServer((pibot_server_ip, pibot_server_port), dispatcher, asyncio.get_event_loop())
+    print(f"Spinning OSC server, listening at ip={pibot_server_ip} and port={pibot_server_port} ")
+    # Serve forever
+    transport, protocol = await pibot_server.create_serve_endpoint()
+
+robot.play()

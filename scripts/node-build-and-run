@@ -1,0 +1,7 @@
+#!/usr/bin/bash
+
+script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+
+other_script="${script_dir}/other_script.sh"
+
+$script_dir/node-build && $script_dir/node-run

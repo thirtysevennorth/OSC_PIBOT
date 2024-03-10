@@ -1,0 +1,15 @@
+#!/usr/bin/env sh
+if [ "$#" -ne 1 ]; then
+  echo "Usage: docker-export-image <output_file> (should end in .tar)"
+  exit 1
+fi
+
+source ./env
+
+output_file="$1"
+
+
+echo $output_file
+echo "$PIBOT_DOCKER_IMAGE"
+
+docker save -o "$output_file" "$PIBOT_DOCKER_IMAGE"

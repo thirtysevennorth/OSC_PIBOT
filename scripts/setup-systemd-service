@@ -1,0 +1,63 @@
+#!/usr/bin/env sh
+
+SCRIPT_DIR="$(cd "$(dirname -- "$0")" && pwd)"
+
+source $SCRIPT_DIR/env.sh
+
+services_dir=/etc/systemd/system
+# ensure directory exists
+# mkdir -p $user_services_dir
+
+if [ "$#" -ne 1 ]; then
+    echo "Invalid argument(s). This script expects only one argument, which should be either 'bot' or 'hub'."
+    exit 1
+fi
+
+# Check the argument value
+if [ "$1" == "bot" ]; then
+    echo "Setting up bot server service..."
+    service_type="pibot"
+elif [ "$1" == "hub" ]; then
+    echo "Setting up hub server service..."
+    service_type="pihub"
+else
+    echo "Invalid argument(s). This script expects only one argument, which should be either 'bot' or 'hub'."
+    exit 1
+fi
+
+service_type_caps=$(echo $service_type | tr '[:lower:]' '[:upper:]')
+
+# Make sure init script is executable
+startup_script="$SCRIPT_DIR/$service_type-start"
+chmod +x $startup_script
+
+service_name="$service_type.service"
+
+# Path to the original .service file template
+service_template="$SCRIPT_DIR/$service_name.template"
+
+# Temporary file for intermediate steps
+temp_service_file=$(mktemp)
+
+# Ensure the temporary file is removed on script exit or if interrupted
+trap 'rm -f "$temp_service_file"' EXIT
+
+OSC_VAR_NAME="${service_type_caps}_OSC_PORT"
+OSC_PORT=${!OSC_VAR_NAME}
+
+# sed "s|<INIT_SCRIPT_HERE>|$startup_script|" "$service_template" > "$temp_service_file"
+sed -e "s|<INIT_SCRIPT_HERE>|$startup_script|" \
+    -e "s|<OSC_PORT_HERE>|$OSC_PORT|" \
+    "$service_template" > "$temp_service_file"
+
+# Copy the modified service file to the systemd system directory
+sudo cp "$temp_service_file" /etc/systemd/system/$service_name
+
+# reload daemon te pickup new service file
+sudo systemctl daemon-reload
+# enable service so that it starts automatically on boot
+sudo systemctl enable $service_name
+# start service now
+# sudo systemctl start $service_name
+
+echo Done.

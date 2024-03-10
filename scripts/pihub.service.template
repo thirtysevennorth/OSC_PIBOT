@@ -1,0 +1,18 @@
+[Unit]
+Description=Start Pihub
+Requires=network-online.target bluetooth.service
+After=network-online.target bluetooth.service
+
+[Service]
+ExecStart=<INIT_SCRIPT_HERE>
+Type=simple
+ExecStopPost=/bin/sleep 5
+Restart=always
+RestartSec=5s
+
+#[Socket]
+#ListenDatagram=<OSC_PORT_HERE>
+#ReusePort=yes
+
+[Install]
+WantedBy=multi-user.target

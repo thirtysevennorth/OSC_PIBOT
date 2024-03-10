@@ -1,0 +1,17 @@
+network:
+    ethernets:
+        eth0:
+            dhcp4: true
+            optional: true
+    version: 2
+    wifis:
+        usb0:
+            optional: true
+            dhcp4: false
+            addresses: [192.168.186.3/24]
+        wlan0:
+            optional: true
+            access-points:
+              "dreamer":
+                password: "33422497Rossum"
+            dhcp4: true

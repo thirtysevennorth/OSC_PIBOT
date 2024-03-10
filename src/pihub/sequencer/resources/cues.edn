@@ -1,0 +1,13 @@
+#_{1 {0 {1 [(undock)]}
+      [3 5] {1 [(undock)]}
+      6 {1 [(undock)]}
+      9 {1 [(undock)]}}}
+
+{1 {0 {1 [(undock)
+          (wait 3)
+          (move 80 5)]}
+    7 {1 [(rotate 90 15)
+          (rotate -90 15)
+          (rotate 360 20)]}
+    15 {1 [(spin-left 0.1 20)
+           (dock)]}}}

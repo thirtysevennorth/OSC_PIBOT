@@ -1,0 +1,7 @@
+#!/usr/bin/env sh
+
+source ./env
+
+echo $PIBOT_DIR
+
+docker build -t $PIBOT_DOCKER_IMAGE $PIBOT_DIR

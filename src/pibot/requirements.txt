@@ -1,0 +1,5 @@
+irobot_edu_sdk
+python-osc
+adafruit-circuitpython-pca9685
+adafruit-blinka
+adafruit-circuitpython-servokit

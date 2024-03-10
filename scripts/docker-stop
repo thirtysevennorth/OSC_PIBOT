@@ -1,0 +1,5 @@
+#!/usr/bin/env sh
+
+source ./env.sh
+
+docker stop $PIBOT_DOCKER_CONTAINER

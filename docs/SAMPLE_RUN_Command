@@ -1,0 +1,12 @@
+PiBOT RUN INSTRUCTIONS
+
+ASSUMING the OSC_PIBOT Directory is located in the home directory of your Pi, and the env.sh script has current environment variables.
+
+ssh yourpiusername@192.168.0.xxx
+
+Enter the following command to 
+
+cd OSC_PIBOT/scripts/ && source ./env.sh  && ./pibot-start
+
+To sync new files:
+cd documents/github/ && rsync -av ./OSC_PIBOT yourusername@192.168.0.xxx:~/ ;

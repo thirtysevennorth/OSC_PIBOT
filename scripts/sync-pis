@@ -1,0 +1,19 @@
+#!/usr/bin/env sh
+SCRIPT_DIR="$(dirname "$(realpath "$0")")"
+source "$SCRIPT_DIR/env"
+
+
+RSYNC_PREAMBLE="-av --exclude='*.tar' --exclude='*.img'"
+
+for i in {1..2}; do
+    bot="PIBOT_$i"
+    ipvar="$BOT"_IP
+    ip=$ipvar
+    echo $ip
+done
+
+
+
+# # Pibots
+# rsync "$RSYNC_PREAMBLE" "$PIBOT_HOME/src/pibot" \
+#     pibot@192.168.0.121:~/pibot/

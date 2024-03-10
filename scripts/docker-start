@@ -1,0 +1,19 @@
+#!/usr/bin/env sh
+
+source ./env
+
+# Check if the container already exists
+if [ $(docker ps -a -q -f name=^/${PIBOT_DOCKER_CONTAINER}$) ]; then
+    # If it exists, start the container
+    echo "Container already exists, starting..."
+    docker start $PIBOT_DOCKER_CONTAINER
+    docker exec -it $PIBOT_DOCKER_CONTAINER /bin/bash
+else
+    # If it doesn't exist, run a new container from the image
+    echo "Container does not already exist, spinning a new one..."
+    docker run -it \
+        --name $PIBOT_DOCKER_CONTAINER \
+        --network="host" \
+        -v $PIBOT_DIR:$PIBOT_DOCKER_CONTAINER_WS \
+        $PIBOT_DOCKER_IMAGE
+fi

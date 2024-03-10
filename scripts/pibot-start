@@ -1,0 +1,31 @@
+#!/usr/bin/env sh
+
+# SCRIPT_DIR="$(dirname "$(realpath "$0")")"
+# SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname -- "$0")" && pwd)"
+echo "Script dir: $SCRIPT_DIR"
+
+source $SCRIPT_DIR/env.sh
+
+local_env="$SCRIPT_DIR/env_local"
+if [ -f "$local_env" ]; then
+    # Source the file
+    source "$local_env"
+    echo "Sourced local env at $local_env."
+else
+    echo "No local env file found at $local_env, ignoring..."
+fi
+
+main_script=$PIBOT_HOME/main.py
+venv="$PIBOT_HOME/env/bin/python3"
+
+if [ "$1" = "--venv" ]; then
+     # && [ -f $venv]; then
+    echo "Using virtualenv at $venv"
+    # Use the python interpreter from the local venv
+    $PIBOT_HOME/env/bin/python3 $main_script
+else
+    echo "Not using a virtualenv"
+    # Use the default python interpreter
+    python3 $main_script
+fi

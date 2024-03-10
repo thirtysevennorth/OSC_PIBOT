@@ -1,0 +1,59 @@
+;; - top-level map for the whole choreography, for now just containing a `:scenes` key.
+#_{:scenes ;; - The value of the `:scenes` key is itself a map
+   {1 ;; - scenes can be labeled either by a number or by a name, e.g. ":intro", ":outro" etc.
+    {;; - bot 1 has a single command for the whole scene: rotate at 6 degrees/s for 15s.
+   ;;   it would be started ASAP after the hub receives an OSC message from isadora
+   ;;   saying that this particular scene has started.
+     :bots {1 (rotate 6 15)
+          ;; bot 2 has a series of commands, collected in a list/vector
+            2 [(undock)
+               (wait 5)
+               (navigate-to 100 100 6)]
+          ;; bot 2 should spin at 6 degrees/s for 15s
+            }}
+  ;; these commands are grouped by time. They will all be sent together as a bundle
+  ;; as soon as their start time is reached and each will execute as soon as the previous ends.
+  ;; This may lead to timing overflows if some commands (e.g. a `navigate-to`) take longer than expected to complete
+    2 {[0 10] {1 [(set-LED 255 0 0 0) ;; substitute actual 16-bit values here
+                  (rotate 2 5)
+                  (set-note-listen true)
+                  (set-LED 0 0 255 0)
+                  (rotate -2 5)]
+               2 (navigate-to 800 200 5)}
+       [10 30] {1 (wait 20)
+                2 [(set-LED 255 0 0 0)
+                   (dock)]}}
+    3 ...}
+ ;; if there's other project-level config that doesn't
+ ;; fit in a particular scene then it can go here
+   :other-top-level-stuf-here ...}
+
+;; This is read as follows:
+;; "Scene one, second 0, bot 1 rotates for 15s"
+;; etc.
+{1 {0 {1 [(rotate 1 1)]}
+    3 {1 [(rotate -2 2)]
+       2 [(undock)
+          (wait 5)
+          (navigate-to 100 100 6.5)]}
+
+    6 {1 [(rotate 3 3)]
+       2 [(undock)
+          (navigate-to 100 100 6)]}
+
+    9 {1 [(rotate -4 4)]
+       2 [(undock)
+          (navigate-to 100 100 6)]}
+    12 {1 [(rotate -5 15)]
+        2 [(undock)
+           (navigate-to 100 100 6)]}
+    15 {1 [(rotate -5 6)]
+        2 [(undock)
+           (navigate-to 100 100 6)]}
+    ;;
+    }
+ 2 {0 {1 [(scene 2 123)
+          (hello 3 222)]
+       2 [(navigate-to 800 200 5)]}
+    [10 40] {2 [(set-LED 255 0 0 0)
+                (dock)]}}}
