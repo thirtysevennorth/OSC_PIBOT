@@ -12,6 +12,6 @@ network:
         wlan0:
             optional: true
             access-points:
-              "dreamer":
-                password: "33422497Rossum"
+              "yourssid":
+                password: "yourpassword"
             dhcp4: true
