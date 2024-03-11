@@ -1,6 +1,8 @@
 BSD 3-Clause License
 
-Copyright (c) 2024, 37 North, Inc, Dimitris Kyiakoudis and Ian Winters
+Copyright (c) 2024, 37 North, Inc.
+Primary contributors Dimitris Kyiakoudis and Ian Winters.
+Additional libraries used subject to the licenses listed in README.MD.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
