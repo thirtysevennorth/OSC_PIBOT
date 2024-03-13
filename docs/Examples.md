@@ -1,5 +1,5 @@
 # EXAMPLE FILES AND DOWNLOADS
-The following files are example files in a variety of software for the [OSC PIBOT](https://github.com/thirtysevennorth/OSC_PIBOT)frameworks as well as example network diagrams.
+The following files are example files in a variety of software for the [OSC PIBOT](https://github.com/thirtysevennorth/OSC_PIBOT) framework as well as example network diagrams.
 
 **Pages:**
 * [README](https://thirtysevennorth.github.io/OSC_PIBOT/)
