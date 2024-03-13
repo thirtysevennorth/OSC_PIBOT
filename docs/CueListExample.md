@@ -3,12 +3,12 @@
 The live Cue list is writen in [Clojure](https://clojure.net) and intended to be editable and refreshable on a live basis. The list outlines cues and timings for all robots and devices under control of the pihub, and each scenes actions can be triggered by a single OSC message.
 
 **Pages:**
-[README](README.md)
-[SOFTWARE EXAMPLES](docs/Examples.md)
-[PI CONFIGURATION](docs/Pi_CONFIGURATION.md)
-[GITHUB REPO](https://github.com/thirtysevennorth/OSC_PIBOT)
-[CUELIST EXAMPLE](docs/CueListExample.md)
-[37 North on GITHUB](https://github.com/thirtysevennorth)
+* [README](README.md)
+* [SOFTWARE EXAMPLES](docs/Examples.md)
+* [PI CONFIGURATION](docs/Pi_CONFIGURATION.md)
+* [GITHUB REPO](https://github.com/thirtysevennorth/OSC_PIBOT)
+* [CUELIST EXAMPLE](docs/CueListExample.md)
+* [37 North on GITHUB](https://github.com/thirtysevennorth)
 
 
 ## cue list map structure
