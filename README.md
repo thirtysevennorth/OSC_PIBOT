@@ -62,7 +62,7 @@ The Pibot script will expect to find the following environment variables:
 
 Note: If there are no hub clients (i.e. Pihub & Isadora) then the environment variables can be placeholder IPs and ports.
 
-Environment variables should be set up by editing and then running the `scripts/env.sh` [script](scripts/env.sh), or passed in directly at the shell. 
+Environment variables should be set up by editing and then running the `scripts/env.sh` [script](https://github.com/thirtysevennorth/OSC_PIBOT/blob/e8c34ce661d22e7ff3a38edfc7313ed5d978c7b8/scripts/env.sh), or passed in directly at the shell. 
 
 ### START OSC PIBOT ON PI
 Once installation and configuration is complete, from the Pi command line enter
@@ -85,7 +85,7 @@ On the PIHUB Pi,
 
 ## OSC MESSAGES
 The following are a list of OSC messages in use along with their arguments and targets. Messages may be generated or received by any OSC source. 
-[Examples.md](docs/Examples.md) has links to example file implementing these messages for a variety of software platforms, and [pibot_osc.py](src/pibot/pibot_osc.py) implements handlers for the messages.
+[Examples.md](docs/Examples.md) has links to example file implementing these messages for a variety of software platforms, and [pibot_osc.py](https://github.com/thirtysevennorth/OSC_PIBOT/blob/e8c34ce661d22e7ff3a38edfc7313ed5d978c7b8/src/pibot/pibot_osc.py) implements handlers for the messages.
 
 
 ### Update streams
