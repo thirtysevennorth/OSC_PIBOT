@@ -3,6 +3,15 @@
 The framework has been tested primarily pi 4B's running Ubuntu 22.04 due to its compatibility with ROS2 Humble. 
 It will also run on Ubuntu 23 and the current Raspbian release, although less testing has been done in those environments. These setup notes are based on our experiences for a **Pi 4B using Ubuntu 22.04.03**. As hardware and OS releases change you will need to adapt the guidance -- particularily if using Ubuntu 23 or Raspbian.
 
+**Pages:**
+[README](README.md)
+[SOFTWARE EXAMPLES](docs/Examples.md)
+[PI CONFIGURATION](docs/Pi_CONFIGURATION.md)
+[GITHUB REPO](https://github.com/thirtysevennorth/OSC_PIBOT)
+[CUELIST EXAMPLE](docs/CueListExample.md)
+[37 North on GITHUB](https://github.com/thirtysevennorth)
+
+
 1) Flash card with base Ubuntu Desktp image 22.04 using Raspberry pi imager with minimal desktop enviroment, or use server and add desktop.
 
 2) Press ctrl-option x to set initial wifi network config prior to flashing. Confirm setup using keyboard, mouse, monitor as the Raspbian Imager often does not set the wifi network credentials when flashing Ubuntu 22.04.
@@ -108,26 +117,25 @@ hkp://keyserver.ubuntu.com:80 --recv-keys 7FA3303E
 ```
 
 8) NTP: Setup NTP on this compute board so the Create 3 can sync its clock. Run timedatectl and see if System clock synchronized returns yes.  If not, setup NTP:
- * Install NTP:
+ * Install CHRONY:
 ```
  	sudo apt install chrony
- 	sudo chronyc clients
+ 	sudo chronyc allow 192.168.0.0/24 [IP RANGE OF the iCreate]
  ```
- This allows the robot to sync to the pi clock if connected over USB, and the NTP service of the robot is set to the Pi's USB0 address.
- * Specify an NTP server. 
+ This allows the robot to sync to the pi clock if connected over USB, and the NTP service of the robot is set to the Pi's USB-0 address.
 
+ * If desired specify an NTP server other than default Ubuntu NTP server. 
  ```
- 	sudo nano /etc/systemd/timesyncd.conf
+   sudo nano /etc/chrony/chrony.conf
  ```
  	then add the below contents (or an NTP server of your choice), 
  ```
- 	[Time]
- 	NTP=ntp.ubuntu.com
- 	FallbackNTP=0.us.pool.ntp.org 1.us.pool.ntp.org
+   pool 0.ubuntu.pool.ntp.org iburst maxsources 1
  ```
 to enable 
  ```
- 	systemctl restart systemd-timesyncd.service
+ 	sudo systemctl restart chrony 
+ 	sudo chronyc activity
  ```
 
 9) PYTHON SETUP: Install required python libraries. Note some distributions may need to use the adafruit blinka install instructions)

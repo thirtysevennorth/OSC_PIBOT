@@ -3,11 +3,19 @@
 <meta/>
 This repo houses a framework for interacting with and controlling iCreate3 robots using OSC or Open Sound Control. It also has a bridge between OSC and ROS2. 
 
+**Pages:**
+[README](README.md)
+[SOFTWARE EXAMPLES](docs/Examples.md)
+[PI CONFIGURATION](docs/Pi_CONFIGURATION.md)
+[GITHUB REPO](https://github.com/thirtysevennorth/OSC_PIBOT)
+[CUELIST EXAMPLE](docs/CueListExample.md)
+[37 North on GITHUB](https://github.com/thirtysevennorth)
+
 The OSC PIBOT framework goals are to provide a OSC based interface that allows for artist-friendly improvisational and performative control of a variety of robots, LEDs, motors and I2C devices from existing media and performance software tools like Max-MSP, Isadora, TouchDesigner, Qlab, and any other OSC capable software.
 
 For each robot, a compute board such as a Raspberry Pi 4B, installed with Ubuntu 22.04, is running a Python script that sets up an OSC server, acting as a bridge between all other OSC clients and the iCreate3 itself (which can't receive OSC natively). Each Pi only listens for messages relating to its assigned robot, filters them, expands them to lower-level commands, and sends them directly to the robot via Bluetooth. For more reliable Bluetooth connection with longer range coverage, the Pis are mounted on the robots and receive OSC messages via a local WiFi network. An optional 'hub' computer may be employed to coordinate multiple robots.
 
-Sample MAX-MSP and Isadora patches for use with the PIBOT framework are on the [**EXAMPLES**](docs/Examples.md) page. OSC PIBOT can be used with any OSC sender / receiver and additional sample files are welcomed. 
+Sample MAX-MSP and Isadora patches for use with the PIBOT framework are on the [SOFTWARE EXAMPLES](docs/Examples.md) page. OSC PIBOT can be used with any OSC sender / receiver and additional sample files are welcomed. 
 
 Two modes:
 1) peer to peer - nodes run on the Pi on each robot and each directly receive/ transmit OSC messages 
