@@ -4,11 +4,11 @@ The framework has been tested primarily pi 4B's running Ubuntu 22.04 due to its 
 It will also run on Ubuntu 23 and the current Raspbian release, although less testing has been done in those environments. These setup notes are based on our experiences for a **Pi 4B using Ubuntu 22.04.03**. As hardware and OS releases change you will need to adapt the guidance -- particularily if using Ubuntu 23 or Raspbian.
 
 **Pages:**
-* [README](README.md)
-* [SOFTWARE EXAMPLES](docs/Examples.md)
-* [PI CONFIGURATION](docs/Pi_CONFIGURATION.md)
+* [README](https://thirtysevennorth.github.io/OSC_PIBOT/)
+* [SOFTWARE EXAMPLES](Examples.md)
+* [PI CONFIGURATION](Pi_CONFIGURATION.md)
 * [GITHUB REPO](https://github.com/thirtysevennorth/OSC_PIBOT)
-* [CUELIST EXAMPLE](docs/CueListExample.md)
+* [CUELIST EXAMPLE](CueListExample.md)
 * [37 North on GITHUB](https://github.com/thirtysevennorth)
 
 1) Flash card with base Ubuntu Desktp image 22.04 using Raspberry pi imager with minimal desktop enviroment, or use server and add desktop.

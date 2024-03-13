@@ -1,12 +1,12 @@
 # EXAMPLE FILES AND DOWNLOADS
-The following files are example files in a variety of software for the [OSC PIBOT](https://github.com/thirtysevennorth/OSC_PIBOT/blob/main/README.md)frameworks as well as example network diagrams.
+The following files are example files in a variety of software for the [OSC PIBOT](https://github.com/thirtysevennorth/OSC_PIBOT)frameworks as well as example network diagrams.
 
 **Pages:**
-* [README](README.md)
-* [SOFTWARE EXAMPLES](docs/Examples.md)
-* [PI CONFIGURATION](docs/Pi_CONFIGURATION.md)
+* [README](https://thirtysevennorth.github.io/OSC_PIBOT/)
+* [SOFTWARE EXAMPLES](Examples.md)
+* [PI CONFIGURATION](Pi_CONFIGURATION.md)
 * [GITHUB REPO](https://github.com/thirtysevennorth/OSC_PIBOT)
-* [CUELIST EXAMPLE](docs/CueListExample.md)
+* [CUELIST EXAMPLE](CueListExample.md)
 * [37 North on GITHUB](https://github.com/thirtysevennorth)
 
 Examples are planned for Isadora, Qlab, Max-MSP / Pure-Data and Touch-OSC and contributions of samples for other software tools such as touchdesigner are welcomed. 
