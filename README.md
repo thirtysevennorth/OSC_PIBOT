@@ -142,7 +142,7 @@ The following are a list of OSC messages in use along with their arguments and t
 
 ## ATTRIBUTION AND CREDITS
 
-### x
+### original project and commisioning credits
 The OSC PIBOT framework was originally developed for the **Dream Club Lab**,** a light and media art installation by [**Ian Winters**](https://ianwinters.com) and [**Elaine Buckholtz**](https://elainebuckholtz.format.com/), as a **Nighthouse Studios collaboration**, with a music score by [**Evelyn Ficarra**](https://evelynficarra.net, and robot programming Dimitris Kyriakoudis. Dream Club Lab was commissioned by the San Jose Downtown Association through the support of the City of San Jose and the Knight Foundation, with production support by [37 North](https://github.com/thirtysevennorth). Learn more about the [Dream Club Lab](https://dreamclublab.art) project.
 
 ### CONTRIBUTORS
