@@ -26,12 +26,12 @@ The RPI GPIO pins in use on the board for I2C and I2S support
 ```
 	Pin 2, 4  	5V power	
 	Pin 6, 14	GND	
-	Pin 3		SDA 	 GPIO2
-	Pin 5		SCL 	 GPIO3
+	Pin 3			SDA 	 	GPIO2
+	Pin 5			SCL 	 	GPIO3
 	Pin 12		PCM_CLK  GPIO18
-	Pin 35		PCM_FS	 GPIO19
-	Pin 37				 GPIO26 (for analog I/O)
-	Pin 38		PCM_DIN	 GPIO20
+	Pin 35		PCM_FS	GPIO19
+	Pin 37				 	GPIO26 (for optional analog I/O)
+	Pin 38		PCM_DIN	GPIO20
 	Pin 40		PCM-DOUT GPIO21
 ```
 [download pinout diagram](PI-I2C_BOARD_PINOUT)

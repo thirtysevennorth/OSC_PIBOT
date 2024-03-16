@@ -7,6 +7,9 @@ For each robot, a compute board such as a Raspberry Pi 4B, installed with Ubuntu
 
 Sample MAX-MSP and Isadora patches for use with the PIBOT framework are on the [**EXAMPLES**](docs/Examples.md) page. OSC PIBOT can be used with any OSC sender / receiver and additional sample files are welcomed. 
 
+Minimum Requirements:
+Ubuntu 22.04 or similar OS on a Raspberry Pi (tested w/ a Pi 4B w/ 4G ram) connected to a robot via bluetooth, a robot (such as an ICreate3) based on irobot-edu-python-sdk, control machine with an OSC sending software source, local network allowing UDP communication between devices.
+
 Two modes:
 1) peer to peer - nodes run on the Pi on each robot and each directly receive/ transmit OSC messages 
 2) one client, multiple servers - a machine running a robot sequencer (written in Clojure) can receive cue sheets with various behavioral routines placed on a timeline and coordinate the bots accordingly.
